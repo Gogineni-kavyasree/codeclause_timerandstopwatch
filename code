@@ -2,188 +2,149 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class EasyFolderLocker {
+public class TimeAndStopwatch {
     private JFrame frame;
-    private JLabel folderLabel, passwordLabel, messageLabel;
-    private JTextField folderTextField, passwordTextField;
-    private JButton lockButton, openButton, addButton, changePasswordButton, aboutButton;
+    private JLabel timeLabel;
+    private JButton timerButton, stopwatchButton;
+    private Timer timer;
+    private long startTime;
+    private boolean isStopwatchRunning;
     
-    private String lockedFolderPath;
-    private String password;
+    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
     
-    public EasyFolderLocker() {
-        frame = new JFrame("Easy Folder Locker");
+    public TimeAndStopwatch() {
+        frame = new JFrame("Timer and Stopwatch");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 300);
-        frame.setLayout(new GridLayout(6, 1));
+        frame.setSize(300, 200);
+        frame.setLayout(new BorderLayout());
         
-        folderLabel = new JLabel("Folder Path:");
-        passwordLabel = new JLabel("Password:");
-        messageLabel = new JLabel("");
+        timeLabel = new JLabel();
+        timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        folderTextField = new JTextField();
-        passwordTextField = new JTextField();
+        timerButton = new JButton("Timer");
+        stopwatchButton = new JButton("Stopwatch");
         
-        lockButton = new JButton("Lock Folder");
-        openButton = new JButton("Open Locked Folder");
-        addButton = new JButton("Add New Folder");
-        changePasswordButton = new JButton("Change Password");
-        aboutButton = new JButton("About");
-        
-        lockButton.addActionListener(new ActionListener() {
+        timerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String folderPath = folderTextField.getText();
-                String enteredPassword = passwordTextField.getText();
-                
-                if (lockFolder(folderPath, enteredPassword)) {
-                    messageLabel.setText("Folder locked successfully!");
-                } else {
-                    messageLabel.setText("Error occurred while locking the folder.");
-                }
+                showTimer();
             }
         });
         
-        openButton.addActionListener(new ActionListener() {
+        stopwatchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (lockedFolderPath != null && password != null) {
-                    openLockedFolder();
-                } else {
-                    messageLabel.setText("No locked folder available.");
-                }
+                showStopwatch();
             }
         });
         
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String folderPath = folderTextField.getText();
-                
-                if (addNewFolder(folderPath)) {
-                    messageLabel.setText("New folder added successfully!");
-                } else {
-                    messageLabel.setText("Error occurred while adding a new folder.");
-                }
-            }
-        });
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout());
+        buttonPanel.add(timerButton);
+        buttonPanel.add(stopwatchButton);
         
-        changePasswordButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String newPassword = passwordTextField.getText();
-                
-                if (changePassword(newPassword)) {
-                    messageLabel.setText("Password changed successfully!");
-                } else {
-                    messageLabel.setText("Error occurred while changing the password.");
-                }
-            }
-        });
+        frame.add(timeLabel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
         
-        aboutButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showAboutDialog();
-            }
-        });
-        
-        frame.add(folderLabel);
-        frame.add(folderTextField);
-        frame.add(passwordLabel);
-        frame.add(passwordTextField);
-        frame.add(lockButton);
-        frame.add(openButton);
-        frame.add(addButton);
-        frame.add(changePasswordButton);
-        frame.add(aboutButton);
-        frame.add(messageLabel);
+        showTimer(); // Show the timer by default
         
         frame.setVisible(true);
     }
     
-    private boolean lockFolder(String folderPath, String enteredPassword) {
-        try {
-            File folder = new File(folderPath);
-            
-            if (!folder.exists()) {
-                System.out.println("Folder does not exist!");
-                return false;
-            }
-            
-            if (!folder.isDirectory()) {
-                System.out.println("Path is not a folder!");
-                return false;
-            }
-            
-            lockedFolderPath = folder.getAbsolutePath();
-            password = enteredPassword;
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+    private void showTimer() {
+        if (isStopwatchRunning) {
+            stopStopwatch();
         }
-    }
-
-    private void openLockedFolder() {
-        try {
-            // Open the locked folder using the default file explorer
-            Desktop.getDesktop().open(new File(lockedFolderPath));
-        } catch (Exception e) {
-            e.printStackTrace();
-            messageLabel.setText("Error occurred while opening the locked folder.");
-        }
-    }
-
-    private boolean addNewFolder(String folderPath) {
-        try {
-            File folder = new File(folderPath);
-            
-            if (!folder.exists()) {
-                System.out.println("Folder does not exist!");
-                return false;
-            }
-            
-            if (!folder.isDirectory()) {
-                System.out.println("Path is not a folder!");
-                return false;
-            }
-            
-            // Add the folder to the list of locked folders or perform any other action
-            
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private boolean changePassword(String newPassword) {
-        // Perform the necessary logic to change the password
         
-        password = newPassword;
-        return true;
+        timeLabel.setText("Set Timer");
+        timerButton.setEnabled(false);
+        stopwatchButton.setEnabled(true);
+        
+        String input = JOptionPane.showInputDialog(frame, "Enter the timer duration (in seconds):");
+        if (input != null && !input.isEmpty()) {
+            int duration = Integer.parseInt(input);
+            startTimer(duration);
+        }
     }
-
-    private void showAboutDialog() {
-        JOptionPane.showMessageDialog(frame,
-                "Easy Folder Locker is a desktop application developed using Java Swing.\n" +
-                "Features:\n" +
-                "- Good User Interface\n" +
-                "- Easily protect folders from other users\n" +
-                "- Encrypted password for security\n" +
-                "- Easy to install and use.",
-                "About Easy Folder Locker",
-                JOptionPane.INFORMATION_MESSAGE);
+    
+    private void startTimer(int duration) {
+        startTime = System.currentTimeMillis();
+        timer = new Timer(1000, new ActionListener() {
+            int remainingTime = duration;
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                remainingTime--;
+                
+                if (remainingTime <= 0) {
+                    stopTimer();
+                } else {
+                    updateTimeLabel(remainingTime);
+                }
+            }
+        });
+        
+        timer.start();
     }
-
+    
+    private void stopTimer() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        
+        updateTimeLabel(0);
+        timerButton.setEnabled(true);
+    }
+    
+    private void showStopwatch() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        
+        isStopwatchRunning = true;
+        timeLabel.setText("00:00:00");
+        timerButton.setEnabled(true);
+        stopwatchButton.setEnabled(false);
+        
+        startStopwatch();
+    }
+    
+    private void startStopwatch() {
+        startTime = System.currentTimeMillis();
+        timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                updateTimeLabel(elapsedTime);
+            }
+        });
+        
+        timer.start();
+    }
+    
+    private void stopStopwatch() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        
+        isStopwatchRunning = false;
+        timerButton.setEnabled(true);
+    }
+    
+    private void updateTimeLabel(long elapsedTime) {
+        String formattedTime = TIME_FORMAT.format(new Date(elapsedTime));
+        timeLabel.setText(formattedTime);
+    }
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new EasyFolderLocker();
+                new TimeAndStopwatch();
             }
         });
     }
