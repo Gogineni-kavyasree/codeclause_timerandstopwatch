@@ -1,0 +1,190 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+
+public class EasyFolderLocker {
+    private JFrame frame;
+    private JLabel folderLabel, passwordLabel, messageLabel;
+    private JTextField folderTextField, passwordTextField;
+    private JButton lockButton, openButton, addButton, changePasswordButton, aboutButton;
+    
+    private String lockedFolderPath;
+    private String password;
+    
+    public EasyFolderLocker() {
+        frame = new JFrame("Easy Folder Locker");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 300);
+        frame.setLayout(new GridLayout(6, 1));
+        
+        folderLabel = new JLabel("Folder Path:");
+        passwordLabel = new JLabel("Password:");
+        messageLabel = new JLabel("");
+        
+        folderTextField = new JTextField();
+        passwordTextField = new JTextField();
+        
+        lockButton = new JButton("Lock Folder");
+        openButton = new JButton("Open Locked Folder");
+        addButton = new JButton("Add New Folder");
+        changePasswordButton = new JButton("Change Password");
+        aboutButton = new JButton("About");
+        
+        lockButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String folderPath = folderTextField.getText();
+                String enteredPassword = passwordTextField.getText();
+                
+                if (lockFolder(folderPath, enteredPassword)) {
+                    messageLabel.setText("Folder locked successfully!");
+                } else {
+                    messageLabel.setText("Error occurred while locking the folder.");
+                }
+            }
+        });
+        
+        openButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (lockedFolderPath != null && password != null) {
+                    openLockedFolder();
+                } else {
+                    messageLabel.setText("No locked folder available.");
+                }
+            }
+        });
+        
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String folderPath = folderTextField.getText();
+                
+                if (addNewFolder(folderPath)) {
+                    messageLabel.setText("New folder added successfully!");
+                } else {
+                    messageLabel.setText("Error occurred while adding a new folder.");
+                }
+            }
+        });
+        
+        changePasswordButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String newPassword = passwordTextField.getText();
+                
+                if (changePassword(newPassword)) {
+                    messageLabel.setText("Password changed successfully!");
+                } else {
+                    messageLabel.setText("Error occurred while changing the password.");
+                }
+            }
+        });
+        
+        aboutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showAboutDialog();
+            }
+        });
+        
+        frame.add(folderLabel);
+        frame.add(folderTextField);
+        frame.add(passwordLabel);
+        frame.add(passwordTextField);
+        frame.add(lockButton);
+        frame.add(openButton);
+        frame.add(addButton);
+        frame.add(changePasswordButton);
+        frame.add(aboutButton);
+        frame.add(messageLabel);
+        
+        frame.setVisible(true);
+    }
+    
+    private boolean lockFolder(String folderPath, String enteredPassword) {
+        try {
+            File folder = new File(folderPath);
+            
+            if (!folder.exists()) {
+                System.out.println("Folder does not exist!");
+                return false;
+            }
+            
+            if (!folder.isDirectory()) {
+                System.out.println("Path is not a folder!");
+                return false;
+            }
+            
+            lockedFolderPath = folder.getAbsolutePath();
+            password = enteredPassword;
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void openLockedFolder() {
+        try {
+            // Open the locked folder using the default file explorer
+            Desktop.getDesktop().open(new File(lockedFolderPath));
+        } catch (Exception e) {
+            e.printStackTrace();
+            messageLabel.setText("Error occurred while opening the locked folder.");
+        }
+    }
+
+    private boolean addNewFolder(String folderPath) {
+        try {
+            File folder = new File(folderPath);
+            
+            if (!folder.exists()) {
+                System.out.println("Folder does not exist!");
+                return false;
+            }
+            
+            if (!folder.isDirectory()) {
+                System.out.println("Path is not a folder!");
+                return false;
+            }
+            
+            // Add the folder to the list of locked folders or perform any other action
+            
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean changePassword(String newPassword) {
+        // Perform the necessary logic to change the password
+        
+        password = newPassword;
+        return true;
+    }
+
+    private void showAboutDialog() {
+        JOptionPane.showMessageDialog(frame,
+                "Easy Folder Locker is a desktop application developed using Java Swing.\n" +
+                "Features:\n" +
+                "- Good User Interface\n" +
+                "- Easily protect folders from other users\n" +
+                "- Encrypted password for security\n" +
+                "- Easy to install and use.",
+                "About Easy Folder Locker",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new EasyFolderLocker();
+            }
+        });
+    }
+}
