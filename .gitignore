@@ -1,0 +1,146 @@
+import javax.swing.*;
+
+public class TimeAndStopwatch {
+    private JFrame frame;
+    private JLabel timeLabel;
+    private JButton timerButton, stopwatchButton;
+    private Timer timer;
+    private long startTime;
+    private boolean isStopwatchRunning;
+    
+    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    
+    public TimeAndStopwatch() {
+        frame = new JFrame("Timer and Stopwatch");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 200);
+        frame.setLayout(new BorderLayout());
+        
+        timeLabel = new JLabel();
+        timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        timerButton = new JButton("Timer");
+        stopwatchButton = new JButton("Stopwatch");
+        
+        timerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showTimer();
+            }
+        });
+        
+        stopwatchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showStopwatch();
+            }
+        });
+        
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout());
+        buttonPanel.add(timerButton);
+        buttonPanel.add(stopwatchButton);
+        
+        frame.add(timeLabel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+        
+        showTimer(); // Show the timer by default
+        
+        frame.setVisible(true);
+    }
+    
+    private void showTimer() {
+        if (isStopwatchRunning) {
+            stopStopwatch();
+        }
+        
+        timeLabel.setText("Set Timer");
+        timerButton.setEnabled(false);
+        stopwatchButton.setEnabled(true);
+        
+        String input = JOptionPane.showInputDialog(frame, "Enter the timer duration (in seconds):");
+        if (input != null && !input.isEmpty()) {
+            int duration = Integer.parseInt(input);
+            startTimer(duration);
+        }
+    }
+    
+    private void startTimer(int duration) {
+        startTime = System.currentTimeMillis();
+        timer = new Timer(1000, new ActionListener() {
+            int remainingTime = duration;
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                remainingTime--;
+                
+                if (remainingTime <= 0) {
+                    stopTimer();
+                } else {
+                    updateTimeLabel(remainingTime);
+                }
+            }
+        });
+        
+        timer.start();
+    }
+    
+    private void stopTimer() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        
+        updateTimeLabel(0);
+        timerButton.setEnabled(true);
+    }
+    
+    private void showStopwatch() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        
+        isStopwatchRunning = true;
+        timeLabel.setText("00:00:00");
+        timerButton.setEnabled(true);
+        stopwatchButton.setEnabled(false);
+        
+        startStopwatch();
+    }
+    
+    private void startStopwatch() {
+        startTime = System.currentTimeMillis();
+        timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                updateTimeLabel(elapsedTime);
+            }
+        });
+        
+        timer.start();
+    }
+    
+    private void stopStopwatch() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        
+        isStopwatchRunning = false;
+        timerButton.setEnabled(true);
+    }
+    
+    private void updateTimeLabel(long elapsedTime) {
+        String formattedTime = TIME_FORMAT.format(new Date(elapsedTime));
+        timeLabel.setText(formattedTime);
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new TimeAndStopwatch();
+            }
+        });
+    }
+}
